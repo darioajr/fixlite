@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fixlite-gateway
+  labels:
+    app: fixlite-gateway
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: fixlite-gateway
+  template:
+    metadata:
+      labels:
+        app: fixlite-gateway
+    spec:
+      containers:
+      - name: fixlite-gateway
+        image: fixlite/gateway:latest
+        ports:
+        - containerPort: 9878
+        - containerPort: 8081
+        env:
+        - name: FIXLITE_SERVER_GATEWAY_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: FIXLITE_KAFKA_BOOTSTRAP_SERVERS
+          value: "kafka-cluster:9092"
+        - name: JAVA_OPTS
+          value: "-Xmx1g -Xms512m"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          tcpSocket:
+            port: 9878
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: 9878
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+      volumes:
+      - name: logs
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fixlite-gateway-service
+spec:
+  selector:
+    app: fixlite-gateway
+  ports:
+  - name: fix-protocol
+    port: 9878
+    targetPort: 9878
+    protocol: TCP
+  - name: metrics
+    port: 8081
+    targetPort: 8081
+    protocol: TCP
+  type: LoadBalancer
+  sessionAffinity: ClientIP  # Important for FIX sessions
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: fixlite-gateway-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: fixlite-gateway
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80

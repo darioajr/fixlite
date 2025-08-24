@@ -1,0 +1,56 @@
+# Multi-stage build for FixLite Gateway (GraalVM Native Image)
+FROM ghcr.io/graalvm/graalvm-ce:ol8-java21-22.3.0 AS builder
+
+# Install native-image
+RUN gu install native-image
+
+# Set working directory
+WORKDIR /app
+
+# Copy Maven files
+COPY pom.xml .
+COPY src ./src
+
+# Install Maven
+RUN microdnf install -y wget tar gzip && \
+    wget https://archive.apache.org/dist/maven/maven-3/3.9.4/binaries/apache-maven-3.9.4-bin.tar.gz && \
+    tar -xzf apache-maven-3.9.4-bin.tar.gz && \
+    mv apache-maven-3.9.4 /opt/maven && \
+    ln -s /opt/maven/bin/mvn /usr/local/bin/mvn
+
+# Build the application (native image)
+RUN mvn clean package -Pnative -DskipTests
+
+# Runtime stage - minimal image
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6
+
+# Create non-root user
+RUN microdnf install -y shadow-utils && \
+    groupadd -r fixlite && \
+    useradd -r -g fixlite -s /bin/false fixlite && \
+    mkdir -p /app/logs && \
+    chown -R fixlite:fixlite /app
+
+# Copy the native binary
+COPY --from=builder /app/target/fixlite-gateway /app/fixlite-gateway
+COPY --from=builder /app/src/main/resources/logback.xml /app/logback.xml
+
+# Set permissions
+RUN chmod +x /app/fixlite-gateway && \
+    chown fixlite:fixlite /app/fixlite-gateway
+
+# Switch to non-root user
+USER fixlite
+
+# Set working directory
+WORKDIR /app
+
+# Expose FIX port
+EXPOSE 9878
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD netstat -an | grep :9878 > /dev/null; if [ 0 != $? ]; then exit 1; fi;
+
+# Run the application
+CMD ["./fixlite-gateway", "9878"]

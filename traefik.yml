@@ -1,0 +1,92 @@
+api:
+  dashboard: true
+  insecure: true
+
+entryPoints:
+  fix:
+    address: ":9878"
+  web:
+    address: ":8080"
+  metrics:
+    address: ":8081"
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: fixlite-cluster
+
+# TCP Load Balancing for FIX Protocol
+tcp:
+  routers:
+    fixlite-cluster:
+      rule: "HostSNI(`*`)"
+      entryPoints:
+        - fix
+      service: fixlite-gateways
+      
+  services:
+    fixlite-gateways:
+      loadBalancer:
+        sticky:
+          cookie:
+            name: "fixlite-session"
+            secure: false
+            httpOnly: true
+        servers:
+          - address: "fixlite-gw-1:9878"
+          - address: "fixlite-gw-2:9878"
+          - address: "fixlite-gw-3:9878"
+        healthCheck:
+          path: "/health"
+          port: 8081
+          interval: "30s"
+          timeout: "5s"
+
+# HTTP Load Balancing for Metrics
+http:
+  routers:
+    metrics-aggregator:
+      rule: "PathPrefix(`/metrics`)"
+      entryPoints:
+        - metrics
+      service: fixlite-metrics
+      
+  services:
+    fixlite-metrics:
+      loadBalancer:
+        servers:
+          - url: "http://fixlite-gw-1:8081"
+          - url: "http://fixlite-gw-2:8081"
+          - url: "http://fixlite-gw-3:8081"
+        healthCheck:
+          path: "/health"
+          interval: "30s"
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: admin@fixlite.com
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web
+
+# Logging
+log:
+  level: INFO
+
+accessLog: {}
+
+# Metrics
+metrics:
+  prometheus:
+    addEntryPointsLabels: true
+    addServicesLabels: true
+    buckets:
+      - 0.1
+      - 0.3
+      - 1.2
+      - 5.0
+
+# Health checks
+ping: {}

@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # Traefik Load Balancer
+  traefik:
+    image: traefik:v3.0
+    container_name: fixlite-traefik
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+    ports:
+      - "9878:9878"  # FIX protocol
+      - "8080:8080"  # Traefik dashboard
+      - "8081:8081"  # Metrics aggregation
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./letsencrypt:/letsencrypt
+    networks:
+      - fixlite-cluster
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.fixlite.local`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+
+  # FixLite Gateway Instance 1
+  fixlite-gw-1:
+    build: .
+    container_name: fixlite-gw-1
+    environment:
+      - JAVA_OPTS=-Xmx1g -Xms512m
+      - FIXLITE_SERVER_GATEWAY_ID=FIXLITE-GW-01
+      - FIXLITE_SERVER_PORT=9878
+    volumes:
+      - ./logs/gw-1:/app/logs
+    restart: unless-stopped
+    networks:
+      - fixlite-cluster
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.routers.fixlite-gw-1.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.fixlite-gw-1.entrypoints=fix"
+      - "traefik.tcp.services.fixlite-gw-1.loadbalancer.server.port=9878"
+      - "traefik.http.routers.fixlite-gw-1-metrics.rule=PathPrefix(`/gw1`)"
+      - "traefik.http.routers.fixlite-gw-1-metrics.entrypoints=metrics"
+      - "traefik.http.services.fixlite-gw-1-metrics.loadbalancer.server.port=8081"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # FixLite Gateway Instance 2
+  fixlite-gw-2:
+    build: .
+    container_name: fixlite-gw-2
+    environment:
+      - JAVA_OPTS=-Xmx1g -Xms512m
+      - FIXLITE_SERVER_GATEWAY_ID=FIXLITE-GW-02
+      - FIXLITE_SERVER_PORT=9878
+    volumes:
+      - ./logs/gw-2:/app/logs
+    restart: unless-stopped
+    networks:
+      - fixlite-cluster
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.routers.fixlite-gw-2.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.fixlite-gw-2.entrypoints=fix"
+      - "traefik.tcp.services.fixlite-gw-2.loadbalancer.server.port=9878"
+      - "traefik.http.routers.fixlite-gw-2-metrics.rule=PathPrefix(`/gw2`)"
+      - "traefik.http.routers.fixlite-gw-2-metrics.entrypoints=metrics"
+      - "traefik.http.services.fixlite-gw-2-metrics.loadbalancer.server.port=8081"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # FixLite Gateway Instance 3
+  fixlite-gw-3:
+    build: .
+    container_name: fixlite-gw-3
+    environment:
+      - JAVA_OPTS=-Xmx1g -Xms512m
+      - FIXLITE_SERVER_GATEWAY_ID=FIXLITE-GW-03
+      - FIXLITE_SERVER_PORT=9878
+    volumes:
+      - ./logs/gw-3:/app/logs
+    restart: unless-stopped
+    networks:
+      - fixlite-cluster
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.routers.fixlite-gw-3.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.fixlite-gw-3.entrypoints=fix"
+      - "traefik.tcp.services.fixlite-gw-3.loadbalancer.server.port=9878"
+      - "traefik.http.routers.fixlite-gw-3-metrics.rule=PathPrefix(`/gw3`)"
+      - "traefik.http.routers.fixlite-gw-3-metrics.entrypoints=metrics"
+      - "traefik.http.services.fixlite-gw-3-metrics.loadbalancer.server.port=8081"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  fixlite-cluster:
+    driver: bridge

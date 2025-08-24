@@ -1,0 +1,22 @@
+FROM openjdk:21-jdk-slim
+
+WORKDIR /app
+
+# Copiar dependências Maven
+COPY target/lib/ /app/lib/
+COPY target/classes/ /app/classes/
+COPY target/test-classes/ /app/test-classes/
+
+# Instalar utilitários para testes
+RUN apt-get update && apt-get install -y \
+    curl \
+    netcat-openbsd \
+    && rm -rf /var/lib/apt/lists/*
+
+# Script de entrada para aguardar gateway estar pronto
+COPY scripts/wait-for-gateway.sh /app/wait-for-gateway.sh
+RUN chmod +x /app/wait-for-gateway.sh
+
+EXPOSE 9879
+
+CMD ["./wait-for-gateway.sh"]

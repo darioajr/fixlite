@@ -1,0 +1,329 @@
+version: '3.8'
+
+services:
+  # Kafka cluster with KRaft mode (3 brokers) - No Zookeeper needed
+  kafka-1:
+    image: confluentinc/cp-kafka:8.0.0
+    hostname: kafka-1
+    container_name: kafka-1
+    ports:
+      - "9092:9092"
+      - "19092:19092"
+    environment:
+      # KRaft Configuration
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka-1:19092,2@kafka-2:19093,3@kafka-3:19094'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://kafka-1:29092,CONTROLLER://kafka-1:19092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      
+      # Cluster ID for KRaft (must be consistent across all brokers)
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
+      
+      # RPO=0 Configuration
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+      KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE: 'false'
+      KAFKA_LOG_FLUSH_INTERVAL_MESSAGES: 1
+      KAFKA_LOG_FLUSH_INTERVAL_MS: 100
+      
+      # Performance settings
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      
+      # KRaft specific settings
+      KAFKA_METADATA_LOG_SEGMENT_MS: 15000
+      KAFKA_METADATA_MAX_RETENTION_MS: 86400000
+    volumes:
+      - kafka-1-data:/var/lib/kafka/data
+    networks:
+      - fixlite-cluster
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  kafka-2:
+    image: confluentinc/cp-kafka:8.0.0
+    hostname: kafka-2
+    container_name: kafka-2
+    ports:
+      - "9093:9093"
+      - "19093:19093"
+    environment:
+      # KRaft Configuration
+      KAFKA_NODE_ID: 2
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka-1:19092,2@kafka-2:19093,3@kafka-3:19094'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://kafka-2:29092,CONTROLLER://kafka-2:19093,PLAINTEXT_HOST://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:29092,PLAINTEXT_HOST://localhost:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      
+      # Cluster ID for KRaft (must be consistent across all brokers)
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
+      
+      # RPO=0 Configuration
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+      KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE: 'false'
+      KAFKA_LOG_FLUSH_INTERVAL_MESSAGES: 1
+      KAFKA_LOG_FLUSH_INTERVAL_MS: 100
+      
+      # Performance settings
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      
+      # KRaft specific settings
+      KAFKA_METADATA_LOG_SEGMENT_MS: 15000
+      KAFKA_METADATA_MAX_RETENTION_MS: 86400000
+    volumes:
+      - kafka-2-data:/var/lib/kafka/data
+    networks:
+      - fixlite-cluster
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9093"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  kafka-3:
+    image: confluentinc/cp-kafka:8.0.0
+    hostname: kafka-3
+    container_name: kafka-3
+    ports:
+      - "9094:9094"
+      - "19094:19094"
+    environment:
+      # KRaft Configuration
+      KAFKA_NODE_ID: 3
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka-1:19092,2@kafka-2:19093,3@kafka-3:19094'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://kafka-3:29092,CONTROLLER://kafka-3:19094,PLAINTEXT_HOST://0.0.0.0:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:29092,PLAINTEXT_HOST://localhost:9094
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      
+      # Cluster ID for KRaft (must be consistent across all brokers)
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
+      
+      # RPO=0 Configuration
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+      KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE: 'false'
+      KAFKA_LOG_FLUSH_INTERVAL_MESSAGES: 1
+      KAFKA_LOG_FLUSH_INTERVAL_MS: 100
+      
+      # Performance settings
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      
+      # KRaft specific settings
+      KAFKA_METADATA_LOG_SEGMENT_MS: 15000
+      KAFKA_METADATA_MAX_RETENTION_MS: 86400000
+    volumes:
+      - kafka-3-data:/var/lib/kafka/data
+    networks:
+      - fixlite-cluster
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9094"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Load Balancer with Traefik
+  traefik:
+    image: traefik:v3.0
+    container_name: fixlite-traefik
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+    ports:
+      - "9878:9878"  # FIX protocol
+      - "8080:8080"  # Traefik dashboard
+      - "8081:8081"  # Metrics aggregation
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./letsencrypt:/letsencrypt
+    depends_on:
+      - fixlite-gw-1
+      - fixlite-gw-2
+      - fixlite-gw-3
+    networks:
+      - fixlite-cluster
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.fixlite.local`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+
+  # FixLite Gateway Instance 1
+  fixlite-gw-1:
+    build: .
+    container_name: fixlite-gw-1
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    ports:
+      - "9871:9878"  # Direct access for debugging
+      - "8071:8081"  # Direct metrics access
+    environment:
+      - JAVA_OPTS=-Xmx1g -Xms512m
+      - FIXLITE_SERVER_GATEWAY_ID=FIXLITE-GW-01
+      - FIXLITE_KAFKA_BOOTSTRAP_SERVERS=kafka-1:29092,kafka-2:29092,kafka-3:29092
+      - FIXLITE_SERVER_PORT=9878
+    volumes:
+      - ./logs/gw-1:/app/logs
+    restart: unless-stopped
+    networks:
+      - fixlite-cluster
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.routers.fixlite-gw-1.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.fixlite-gw-1.entrypoints=fix"
+      - "traefik.tcp.services.fixlite-gw-1.loadbalancer.server.port=9878"
+      - "traefik.http.routers.fixlite-gw-1-metrics.rule=PathPrefix(`/gw1`)"
+      - "traefik.http.routers.fixlite-gw-1-metrics.entrypoints=metrics"
+      - "traefik.http.services.fixlite-gw-1-metrics.loadbalancer.server.port=8081"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # FixLite Gateway Instance 2
+  fixlite-gw-2:
+    build: .
+    container_name: fixlite-gw-2
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    ports:
+      - "9872:9878"  # Direct access for debugging
+      - "8072:8081"  # Direct metrics access
+    environment:
+      - JAVA_OPTS=-Xmx1g -Xms512m
+      - FIXLITE_SERVER_GATEWAY_ID=FIXLITE-GW-02
+      - FIXLITE_KAFKA_BOOTSTRAP_SERVERS=kafka-1:29092,kafka-2:29092,kafka-3:29092
+      - FIXLITE_SERVER_PORT=9878
+    volumes:
+      - ./logs/gw-2:/app/logs
+    restart: unless-stopped
+    networks:
+      - fixlite-cluster
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.routers.fixlite-gw-2.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.fixlite-gw-2.entrypoints=fix"
+      - "traefik.tcp.services.fixlite-gw-2.loadbalancer.server.port=9878"
+      - "traefik.http.routers.fixlite-gw-2-metrics.rule=PathPrefix(`/gw2`)"
+      - "traefik.http.routers.fixlite-gw-2-metrics.entrypoints=metrics"
+      - "traefik.http.services.fixlite-gw-2-metrics.loadbalancer.server.port=8081"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # FixLite Gateway Instance 3
+  fixlite-gw-3:
+    build: .
+    container_name: fixlite-gw-3
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    ports:
+      - "9873:9878"  # Direct access for debugging
+      - "8073:8081"  # Direct metrics access
+    environment:
+      - JAVA_OPTS=-Xmx1g -Xms512m
+      - FIXLITE_SERVER_GATEWAY_ID=FIXLITE-GW-03
+      - FIXLITE_KAFKA_BOOTSTRAP_SERVERS=kafka-1:29092,kafka-2:29092,kafka-3:29092
+      - FIXLITE_SERVER_PORT=9878
+    volumes:
+      - ./logs/gw-3:/app/logs
+    restart: unless-stopped
+    networks:
+      - fixlite-cluster
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.routers.fixlite-gw-3.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.fixlite-gw-3.entrypoints=fix"
+      - "traefik.tcp.services.fixlite-gw-3.loadbalancer.server.port=9878"
+      - "traefik.http.routers.fixlite-gw-3-metrics.rule=PathPrefix(`/gw3`)"
+      - "traefik.http.routers.fixlite-gw-3-metrics.entrypoints=metrics"
+      - "traefik.http.services.fixlite-gw-3-metrics.loadbalancer.server.port=8081"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Kafka UI for monitoring (KRaft mode)
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: fixlite-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:29092,kafka-2:29092,kafka-3:29092
+      # No Zookeeper needed in KRaft mode
+    networks:
+      - fixlite-cluster
+
+  # Topic initialization (KRaft mode)
+  kafka-init:
+    image: confluentinc/cp-kafka:8.0.0
+    depends_on:
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      echo 'Waiting for Kafka KRaft cluster to be ready...'
+      sleep 30
+      
+      # Create topics with proper replication for RPO=0
+      kafka-topics --bootstrap-server kafka-1:29092,kafka-2:29092,kafka-3:29092 --create --if-not-exists --topic fixlite.session.events --partitions 6 --replication-factor 3 --config min.insync.replicas=2
+      kafka-topics --bootstrap-server kafka-1:29092,kafka-2:29092,kafka-3:29092 --create --if-not-exists --topic fixlite.message.journal --partitions 12 --replication-factor 3 --config min.insync.replicas=2
+      kafka-topics --bootstrap-server kafka-1:29092,kafka-2:29092,kafka-3:29092 --create --if-not-exists --topic fixlite.session.state --partitions 6 --replication-factor 3 --config min.insync.replicas=2 --config cleanup.policy=compact
+      
+      echo 'Kafka topics created successfully with KRaft'
+      "
+    networks:
+      - fixlite-cluster
+
+volumes:
+  kafka-1-data:
+  kafka-2-data:
+  kafka-3-data:
+
+networks:
+  fixlite-cluster:
+    driver: bridge

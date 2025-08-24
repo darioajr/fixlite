@@ -1,0 +1,122 @@
+version: '3.8'
+
+services:
+  fixlite-test-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9878:9878"
+      - "8080:8080"
+    environment:
+      - JAVA_OPTS=-Xmx512m -Xms256m
+      - FIX_PORT=9878
+      - HTTP_PORT=8080
+      - KAFKA_ENABLED=false
+    networks:
+      - fixlite-test
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  clearing-house-simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile.test-client
+    depends_on:
+      - fixlite-test-gateway
+    environment:
+      - GATEWAY_HOST=fixlite-test-gateway
+      - GATEWAY_PORT=9878
+      - CLIENT_ID=CLEARING_HOUSE_A
+      - CLIENT_TYPE=CLEARING_HOUSE
+      - FIX_VERSION=FIXT.1.1
+    networks:
+      - fixlite-test
+    command: ["java", "-cp", "/app/test-classes:/app/classes:/app/lib/*", "com.fixlite.integration.PostTradingClientRunner"]
+
+  ccp-simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile.test-client
+    depends_on:
+      - fixlite-test-gateway
+    environment:
+      - GATEWAY_HOST=fixlite-test-gateway
+      - GATEWAY_PORT=9878
+      - CLIENT_ID=CCP_MAIN
+      - CLIENT_TYPE=CCP
+      - FIX_VERSION=FIXT.1.1
+    networks:
+      - fixlite-test
+    command: ["java", "-cp", "/app/test-classes:/app/classes:/app/lib/*", "com.fixlite.integration.PostTradingClientRunner"]
+
+  custodian-simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile.test-client
+    depends_on:
+      - fixlite-test-gateway
+    environment:
+      - GATEWAY_HOST=fixlite-test-gateway
+      - GATEWAY_PORT=9878
+      - CLIENT_ID=CUSTODIAN_BANK
+      - CLIENT_TYPE=CUSTODIAN
+      - FIX_VERSION=FIX.4.4
+    networks:
+      - fixlite-test
+    command: ["java", "-cp", "/app/test-classes:/app/classes:/app/lib/*", "com.fixlite.integration.PostTradingClientRunner"]
+
+  settlement-simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile.test-client
+    depends_on:
+      - fixlite-test-gateway
+    environment:
+      - GATEWAY_HOST=fixlite-test-gateway
+      - GATEWAY_PORT=9878
+      - CLIENT_ID=SETTLEMENT_SYS
+      - CLIENT_TYPE=SETTLEMENT_SYSTEM
+      - FIX_VERSION=FIX.4.4
+    networks:
+      - fixlite-test
+    command: ["java", "-cp", "/app/test-classes:/app/classes:/app/lib/*", "com.fixlite.integration.PostTradingClientRunner"]
+
+  risk-manager-simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile.test-client
+    depends_on:
+      - fixlite-test-gateway
+    environment:
+      - GATEWAY_HOST=fixlite-test-gateway
+      - GATEWAY_PORT=9878
+      - CLIENT_ID=RISK_MANAGER
+      - CLIENT_TYPE=RISK_MANAGER
+      - FIX_VERSION=FIXT.1.1
+    networks:
+      - fixlite-test
+    command: ["java", "-cp", "/app/test-classes:/app/classes:/app/lib/*", "com.fixlite.integration.PostTradingClientRunner"]
+
+  performance-test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test-client
+    depends_on:
+      - fixlite-test-gateway
+    environment:
+      - GATEWAY_HOST=fixlite-test-gateway
+      - GATEWAY_PORT=9878
+      - TEST_TYPE=PERFORMANCE
+      - ORDER_COUNT=1000
+      - CONCURRENT_CLIENTS=5
+    networks:
+      - fixlite-test
+    command: ["java", "-cp", "/app/test-classes:/app/classes:/app/lib/*", "com.fixlite.integration.PerformanceTestRunner"]
+
+networks:
+  fixlite-test:
+    driver: bridge

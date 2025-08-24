@@ -1,0 +1,113 @@
+{
+  "permissions": [
+    {
+      "sender": "CLEARING_HOUSE",
+      "target": "*",
+      "messageTypes": ["AK", "J", "AS", "T", "AV"],
+      "symbols": ["*"],
+      "description": "Clearing House - Acesso total para confirmações e settlement"
+    },
+    {
+      "sender": "CCP_MAIN",
+      "target": "CLEARING_HOUSE",
+      "messageTypes": ["AE", "AX", "BE", "BF"],
+      "symbols": ["*"],
+      "description": "CCP para Clearing - Trade capture e collateral"
+    },
+    {
+      "sender": "BROKER_*",
+      "target": "EXCHANGE",
+      "messageTypes": ["D", "G", "F", "H"],
+      "symbols": ["AAPL", "MSFT", "GOOGL", "TSLA", "AMZN"],
+      "description": "Brokers - Ordens de mercado para ações principais"
+    },
+    {
+      "sender": "SETTLEMENT_SYS",
+      "target": "*",
+      "messageTypes": ["AV", "BQ", "T"],
+      "symbols": ["*"],
+      "description": "Sistema de Settlement - Instruções de liquidação"
+    },
+    {
+      "sender": "RISK_MANAGER",
+      "target": "*",
+      "messageTypes": ["BE", "BF", "AP", "AN"],
+      "symbols": ["*"],
+      "description": "Risk Manager - Margin e position reports"
+    },
+    {
+      "sender": "CUSTODIAN_*",
+      "target": "SETTLEMENT_SYS",
+      "messageTypes": ["AV", "AP", "AN"],
+      "symbols": ["*"],
+      "description": "Custodiantes - Settlement e position requests"
+    },
+    {
+      "sender": "REGULATORY_REPORTER",
+      "target": "*",
+      "messageTypes": ["AE", "AK", "AQ"],
+      "symbols": ["*"],
+      "description": "Regulatory Reporter - Trade reporting e confirmações"
+    },
+    {
+      "sender": "MARKET_MAKER_*",
+      "target": "EXCHANGE",
+      "messageTypes": ["D", "G", "F", "i"],
+      "symbols": ["AAPL", "MSFT", "GOOGL", "TSLA", "AMZN", "META", "NVDA"],
+      "description": "Market Makers - Ordens e quotes"
+    },
+    {
+      "sender": "PRIME_BROKER",
+      "target": "CLEARING_HOUSE",
+      "messageTypes": ["J", "AS", "AK"],
+      "symbols": ["*"],
+      "description": "Prime Broker - Allocation e confirmações"
+    },
+    {
+      "sender": "FUND_MANAGER_*",
+      "target": "PRIME_BROKER",
+      "messageTypes": ["D", "G", "F"],
+      "symbols": ["*"],
+      "description": "Fund Managers - Ordens via Prime Broker"
+    }
+  ],
+  "messageTypeDescriptions": {
+    "D": "NewOrderSingle - Nova ordem",
+    "G": "OrderCancelReplaceRequest - Modificar ordem",
+    "F": "OrderCancelRequest - Cancelar ordem",
+    "H": "OrderStatusRequest - Status da ordem",
+    "i": "MassQuote - Cotações em massa",
+    "AK": "TradeConfirmation - Confirmação de trade",
+    "J": "AllocationInstruction - Instrução de alocação",
+    "AS": "AllocationReport - Relatório de alocação",
+    "T": "SettlementInstructions - Instruções de settlement",
+    "AV": "SettlementInstructionRequest - Solicitação de settlement",
+    "BQ": "SettlementObligationReport - Relatório de obrigações",
+    "AE": "TradeCaptureReport - Relatório de captura de trade",
+    "AX": "CollateralAssignment - Atribuição de colateral",
+    "BE": "MarginRequirementReport - Relatório de margem",
+    "BF": "MarginRequirementInquiry - Consulta de margem",
+    "AP": "PositionMaintenanceRequest - Solicitação de posição",
+    "AN": "PositionMaintenanceReport - Relatório de posição",
+    "AQ": "PositionReport - Relatório de posição"
+  },
+  "participantTypes": {
+    "BROKER": "Corretoras que executam ordens",
+    "EXCHANGE": "Bolsas de valores",
+    "CLEARING_HOUSE": "Casas de compensação",
+    "CCP": "Central Counterparty - Contraparte central",
+    "SETTLEMENT_SYS": "Sistemas de liquidação",
+    "CUSTODIAN": "Custodiantes de ativos",
+    "RISK_MANAGER": "Gerenciadores de risco",
+    "REGULATORY_REPORTER": "Reportadores regulatórios",
+    "MARKET_MAKER": "Formadores de mercado",
+    "PRIME_BROKER": "Prime Brokers",
+    "FUND_MANAGER": "Gestores de fundos"
+  },
+  "rules": {
+    "wildcardSupport": "Use * para permitir qualquer valor",
+    "timeBasedPermissions": "Suporte a validFrom e validTo",
+    "administrativeMessages": "Mensagens A,5,0,1,2,4,3 sempre permitidas",
+    "defaultDeny": "Por padrão, mensagens são negadas sem permissão explícita"
+  }
+}

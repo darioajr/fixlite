@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fix version="4.4" xmlns="http://www.fixprotocol.org/FIXML-4-4">
+    <fields>
+        <!-- Standard Header Fields -->
+        <field number="8" name="BeginString" type="STRING" required="true">
+            <description>Identifies beginning of new message and protocol version</description>
+        </field>
+        <field number="9" name="BodyLength" type="LENGTH" required="true">
+            <description>Message length, in bytes, forward to the CheckSum field</description>
+        </field>
+        <field number="35" name="MsgType" type="STRING" required="true">
+            <description>Defines message type</description>
+            <value enum="0" description="HEARTBEAT"/>
+            <value enum="1" description="TEST_REQUEST"/>
+            <value enum="2" description="RESEND_REQUEST"/>
+            <value enum="3" description="REJECT"/>
+            <value enum="4" description="SEQUENCE_RESET"/>
+            <value enum="5" description="LOGOUT"/>
+            <value enum="A" description="LOGON"/>
+            <value enum="D" description="NEW_ORDER_SINGLE"/>
+            <value enum="8" description="EXECUTION_REPORT"/>
+            <value enum="F" description="ORDER_CANCEL_REQUEST"/>
+            <value enum="9" description="ORDER_CANCEL_REJECT"/>
+            <value enum="H" description="ORDER_STATUS_REQUEST"/>
+            <value enum="j" description="BUSINESS_MESSAGE_REJECT"/>
+            <value enum="V" description="MARKET_DATA_REQUEST"/>
+            <value enum="W" description="MARKET_DATA_SNAPSHOT"/>
+            <value enum="X" description="MARKET_DATA_INCREMENTAL_REFRESH"/>
+            <value enum="Y" description="MARKET_DATA_REQUEST_REJECT"/>
+        </field>
+        <field number="34" name="MsgSeqNum" type="SEQNUM" required="true">
+            <description>Integer message sequence number</description>
+        </field>
+        <field number="49" name="SenderCompID" type="STRING" required="true">
+            <description>Assigned value used to identify firm sending message</description>
+        </field>
+        <field number="56" name="TargetCompID" type="STRING" required="true">
+            <description>Assigned value used to identify receiving firm</description>
+        </field>
+        <field number="52" name="SendingTime" type="UTCTIMESTAMP" required="true">
+            <description>Time of message transmission</description>
+        </field>
+        <field number="10" name="CheckSum" type="STRING" required="true">
+            <description>Three character checksum</description>
+        </field>
+
+        <!-- Session Level Fields -->
+        <field number="98" name="EncryptMethod" type="INT">
+            <description>Method of encryption</description>
+            <value enum="0" description="NONE"/>
+            <value enum="1" description="PKCS"/>
+            <value enum="2" description="DES"/>
+            <value enum="3" description="PKCS_DES"/>
+            <value enum="4" description="PGP_DES"/>
+            <value enum="5" description="PGP_DES_MD5"/>
+            <value enum="6" description="PEM_DES_MD5"/>
+        </field>
+        <field number="108" name="HeartBtInt" type="INT">
+            <description>Heartbeat interval (seconds)</description>
+        </field>
+        <field number="112" name="TestReqID" type="STRING">
+            <description>Identifier included in Test Request message to be returned in resulting Heartbeat</description>
+        </field>
+        <field number="553" name="Username" type="STRING">
+            <description>Username or ID</description>
+        </field>
+        <field number="554" name="Password" type="STRING">
+            <description>Password</description>
+        </field>
+        <field number="141" name="ResetSeqNumFlag" type="BOOLEAN">
+            <description>Indicates that the both sides of the FIX session should reset sequence numbers</description>
+        </field>
+
+        <!-- Application Level Fields -->
+        <field number="11" name="ClOrdID" type="STRING">
+            <description>Unique identifier of the order as assigned by institution</description>
+        </field>
+        <field number="37" name="OrderID" type="STRING">
+            <description>Unique identifier for Order as assigned by sell-side</description>
+        </field>
+        <field number="17" name="ExecID" type="STRING">
+            <description>Unique identifier of execution message as assigned by sell-side</description>
+        </field>
+        <field number="150" name="ExecType" type="CHAR">
+            <description>Describes the specific ExecutionRpt</description>
+            <value enum="0" description="NEW"/>
+            <value enum="1" description="PARTIAL_FILL"/>
+            <value enum="2" description="FILL"/>
+            <value enum="4" description="CANCELED"/>
+            <value enum="5" description="REPLACE"/>
+            <value enum="6" description="PENDING_CANCEL"/>
+            <value enum="7" description="STOPPED"/>
+            <value enum="8" description="REJECTED"/>
+            <value enum="9" description="SUSPENDED"/>
+            <value enum="A" description="PENDING_NEW"/>
+            <value enum="B" description="CALCULATED"/>
+            <value enum="C" description="EXPIRED"/>
+            <value enum="D" description="RESTATED"/>
+            <value enum="E" description="PENDING_REPLACE"/>
+        </field>
+        <field number="39" name="OrdStatus" type="CHAR">
+            <description>Identifies current status of order</description>
+            <value enum="0" description="NEW"/>
+            <value enum="1" description="PARTIALLY_FILLED"/>
+            <value enum="2" description="FILLED"/>
+            <value enum="3" description="DONE_FOR_DAY"/>
+            <value enum="4" description="CANCELED"/>
+            <value enum="5" description="REPLACED"/>
+            <value enum="6" description="PENDING_CANCEL"/>
+            <value enum="7" description="STOPPED"/>
+            <value enum="8" description="REJECTED"/>
+            <value enum="9" description="SUSPENDED"/>
+            <value enum="A" description="PENDING_NEW"/>
+            <value enum="B" description="CALCULATED"/>
+            <value enum="C" description="EXPIRED"/>
+            <value enum="D" description="ACCEPTED_FOR_BIDDING"/>
+            <value enum="E" description="PENDING_REPLACE"/>
+        </field>
+        <field number="55" name="Symbol" type="STRING">
+            <description>Ticker symbol</description>
+        </field>
+        <field number="54" name="Side" type="CHAR">
+            <description>Side of order</description>
+            <value enum="1" description="BUY"/>
+            <value enum="2" description="SELL"/>
+            <value enum="3" description="BUY_MINUS"/>
+            <value enum="4" description="SELL_PLUS"/>
+            <value enum="5" description="SELL_SHORT"/>
+            <value enum="6" description="SELL_SHORT_EXEMPT"/>
+            <value enum="7" description="UNDISCLOSED"/>
+            <value enum="8" description="CROSS"/>
+            <value enum="9" description="CROSS_SHORT"/>
+        </field>
+        <field number="38" name="OrderQty" type="QTY">
+            <description>Quantity ordered</description>
+        </field>
+        <field number="40" name="OrdType" type="CHAR">
+            <description>Order type</description>
+            <value enum="1" description="MARKET"/>
+            <value enum="2" description="LIMIT"/>
+            <value enum="3" description="STOP"/>
+            <value enum="4" description="STOP_LIMIT"/>
+            <value enum="5" description="MARKET_ON_CLOSE"/>
+            <value enum="6" description="WITH_OR_WITHOUT"/>
+            <value enum="7" description="LIMIT_OR_BETTER"/>
+            <value enum="8" description="LIMIT_WITH_OR_WITHOUT"/>
+            <value enum="9" description="ON_BASIS"/>
+            <value enum="A" description="ON_CLOSE"/>
+            <value enum="B" description="LIMIT_ON_CLOSE"/>
+            <value enum="C" description="FOREX_MARKET"/>
+            <value enum="D" description="PREVIOUSLY_QUOTED"/>
+            <value enum="E" description="PREVIOUSLY_INDICATED"/>
+            <value enum="F" description="FOREX_LIMIT"/>
+            <value enum="G" description="FOREX_SWAP"/>
+            <value enum="H" description="FOREX_PREVIOUSLY_QUOTED"/>
+            <value enum="I" description="FUNARI"/>
+            <value enum="P" description="PEGGED"/>
+        </field>
+        <field number="44" name="Price" type="PRICE">
+            <description>Price per unit of quantity</description>
+        </field>
+        <field number="59" name="TimeInForce" type="CHAR">
+            <description>Specifies how long the order remains in effect</description>
+            <value enum="0" description="DAY"/>
+            <value enum="1" description="GOOD_TILL_CANCEL"/>
+            <value enum="2" description="AT_THE_OPENING"/>
+            <value enum="3" description="IMMEDIATE_OR_CANCEL"/>
+            <value enum="4" description="FILL_OR_KILL"/>
+            <value enum="5" description="GOOD_TILL_CROSSING"/>
+            <value enum="6" description="GOOD_TILL_DATE"/>
+            <value enum="7" description="AT_THE_CLOSE"/>
+        </field>
+        <field number="32" name="LastQty" type="QTY">
+            <description>Quantity of shares bought/sold on this fill</description>
+        </field>
+        <field number="31" name="LastPx" type="PRICE">
+            <description>Price of this fill</description>
+        </field>
+        <field number="151" name="LeavesQty" type="QTY">
+            <description>Quantity open for further execution</description>
+        </field>
+        <field number="14" name="CumQty" type="QTY">
+            <description>Total quantity filled</description>
+        </field>
+        <field number="6" name="AvgPx" type="PRICE">
+            <description>Calculated average price of all fills on this order</description>
+        </field>
+
+        <!-- Reject Fields -->
+        <field number="45" name="RefSeqNum" type="SEQNUM">
+            <description>Reference message sequence number</description>
+        </field>
+        <field number="371" name="RefTagID" type="INT">
+            <description>The tag number of the FIX field being referenced</description>
+        </field>
+        <field number="372" name="RefMsgType" type="STRING">
+            <description>The MsgType of the FIX message being referenced</description>
+        </field>
+        <field number="373" name="SessionRejectReason" type="INT">
+            <description>Code to identify reason for a session-level Reject message</description>
+            <value enum="0" description="INVALID_TAG_NUMBER"/>
+            <value enum="1" description="REQUIRED_TAG_MISSING"/>
+            <value enum="2" description="TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE"/>
+            <value enum="3" description="UNDEFINED_TAG"/>
+            <value enum="4" description="TAG_SPECIFIED_WITHOUT_A_VALUE"/>
+            <value enum="5" description="VALUE_IS_INCORRECT"/>
+            <value enum="6" description="INCORRECT_DATA_FORMAT_FOR_VALUE"/>
+            <value enum="7" description="DECRYPTION_PROBLEM"/>
+            <value enum="8" description="SIGNATURE_PROBLEM"/>
+            <value enum="9" description="COMPID_PROBLEM"/>
+            <value enum="10" description="SENDINGTIME_ACCURACY_PROBLEM"/>
+            <value enum="11" description="INVALID_MSGTYPE"/>
+        </field>
+        <field number="58" name="Text" type="STRING">
+            <description>Free format text string</description>
+        </field>
+    </fields>
+</fix>

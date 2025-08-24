@@ -1,0 +1,168 @@
+{
+  "modelName": "CustomTradingModel",
+  "baseVersion": "FIX.4.4",
+  "description": "Example custom FIX model for proprietary trading",
+  "fields": {
+    "9000": {
+      "name": "CustomOrderType",
+      "type": "CHAR",
+      "required": false,
+      "description": "Custom order type for algorithmic trading",
+      "validValues": {
+        "A": "ALGO_TWAP",
+        "B": "ALGO_VWAP",
+        "C": "ALGO_POV",
+        "D": "ICEBERG",
+        "E": "HIDDEN"
+      }
+    },
+    "9001": {
+      "name": "AlgoParameters",
+      "type": "STRING",
+      "required": false,
+      "description": "JSON encoded algorithm parameters"
+    },
+    "9002": {
+      "name": "RiskLimits",
+      "type": "STRING",
+      "required": false,
+      "description": "JSON encoded risk limits"
+    },
+    "9003": {
+      "name": "ClientStrategy",
+      "type": "STRING",
+      "required": false,
+      "description": "Client-defined strategy identifier"
+    },
+    "9004": {
+      "name": "InternalOrderID",
+      "type": "STRING",
+      "required": false,
+      "description": "Internal system order identifier"
+    },
+    "9005": {
+      "name": "ParentOrderID",
+      "type": "STRING",
+      "required": false,
+      "description": "Parent order ID for child orders"
+    },
+    "9006": {
+      "name": "SliceNumber",
+      "type": "INT",
+      "required": false,
+      "description": "Slice number for algorithm execution"
+    },
+    "9007": {
+      "name": "TotalSlices",
+      "type": "INT",
+      "required": false,
+      "description": "Total number of slices for algorithm"
+    },
+    "9008": {
+      "name": "ExecutionVenue",
+      "type": "STRING",
+      "required": false,
+      "description": "Specific execution venue or dark pool"
+    },
+    "9009": {
+      "name": "LiquidityFlag",
+      "type": "CHAR",
+      "required": false,
+      "description": "Liquidity provision flag",
+      "validValues": {
+        "A": "ADDED_LIQUIDITY",
+        "R": "REMOVED_LIQUIDITY",
+        "N": "NEUTRAL"
+      }
+    },
+    "9010": {
+      "name": "ComplianceStatus",
+      "type": "CHAR",
+      "required": false,
+      "description": "Compliance check status",
+      "validValues": {
+        "P": "PASSED",
+        "F": "FAILED",
+        "W": "WARNING",
+        "E": "EXEMPT"
+      }
+    }
+  },
+  "messageTypes": {
+    "U1": {
+      "name": "CustomNewOrder",
+      "description": "Custom new order with algorithmic parameters",
+      "category": "app",
+      "requiredFields": ["ClOrdID", "Symbol", "Side", "OrderQty", "OrdType"],
+      "optionalFields": ["CustomOrderType", "AlgoParameters", "RiskLimits", "ClientStrategy", "ExecutionVenue"]
+    },
+    "U2": {
+      "name": "AlgorithmStatus",
+      "description": "Algorithm execution status report",
+      "category": "app",
+      "requiredFields": ["ClOrdID", "InternalOrderID", "AlgoStatus"],
+      "optionalFields": ["SliceNumber", "TotalSlices", "CompletedQty", "RemainingQty", "Text"]
+    },
+    "U3": {
+      "name": "RiskAlert",
+      "description": "Risk management alert message",
+      "category": "app",
+      "requiredFields": ["AlertID", "AlertType", "Severity"],
+      "optionalFields": ["ClOrdID", "Symbol", "RiskMetric", "CurrentValue", "Threshold", "Text"]
+    },
+    "U4": {
+      "name": "VenueStatus",
+      "description": "Execution venue status update",
+      "category": "app",
+      "requiredFields": ["VenueID", "VenueStatus"],
+      "optionalFields": ["StatusReason", "ExpectedResolution", "AffectedSymbols"]
+    }
+  },
+  "additionalFields": {
+    "9020": {
+      "name": "AlgoStatus",
+      "type": "CHAR",
+      "validValues": {
+        "N": "NEW",
+        "S": "STARTED",
+        "R": "RUNNING",
+        "P": "PAUSED",
+        "C": "COMPLETED",
+        "X": "CANCELLED",
+        "E": "ERROR"
+      }
+    },
+    "9021": {
+      "name": "AlertType",
+      "type": "CHAR",
+      "validValues": {
+        "P": "POSITION_LIMIT",
+        "V": "VALUE_AT_RISK",
+        "C": "CONCENTRATION",
+        "L": "LEVERAGE",
+        "S": "SECTOR_EXPOSURE"
+      }
+    },
+    "9022": {
+      "name": "Severity",
+      "type": "CHAR",
+      "validValues": {
+        "I": "INFO",
+        "W": "WARNING",
+        "E": "ERROR",
+        "C": "CRITICAL"
+      }
+    },
+    "9023": {
+      "name": "VenueStatus",
+      "type": "CHAR",
+      "validValues": {
+        "O": "OPEN",
+        "C": "CLOSED",
+        "H": "HALTED",
+        "D": "DEGRADED",
+        "M": "MAINTENANCE"
+      }
+    }
+  }
+}

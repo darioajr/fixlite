@@ -1,0 +1,154 @@
+version: '3.8'
+
+services:
+  # Build FixLite Gateway with standard JVM
+  fixlite-jvm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: fixlite-gateway:jvm
+    container_name: fixlite-gateway-jvm
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "9878:9878"
+      - "8081:8081"  # Metrics endpoint
+    environment:
+      - JAVA_OPTS=-Xmx512m -Xms256m
+      - FIXLITE_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - FIXLITE_SERVER_GATEWAY_ID=FIXLITE-GW-JVM-01
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - fixlite-network
+    healthcheck:
+      test: ["CMD", "sh", "-c", "netstat -an | grep :9878"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Build FixLite Gateway with GraalVM Native Image
+  fixlite-native:
+    build:
+      context: .
+      dockerfile: Dockerfile.native
+    image: fixlite-gateway:native
+    container_name: fixlite-gateway-native
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "9879:9878"  # Different port to avoid conflict
+      - "8082:8081"  # Different metrics port
+    environment:
+      - FIXLITE_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - FIXLITE_SERVER_GATEWAY_ID=FIXLITE-GW-NATIVE-01
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - fixlite-network
+    healthcheck:
+      test: ["CMD", "sh", "-c", "netstat -an | grep :9878"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s  # Native starts faster
+
+  # Kafka broker with KRaft mode (no Zookeeper needed)
+  kafka:
+    image: confluentinc/cp-kafka:8.0.0
+    hostname: kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+      - "9997:9997"
+    environment:
+      # KRaft Configuration
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,CONTROLLER://kafka:9093,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      
+      # Cluster ID for KRaft (must be consistent across all brokers)
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
+      
+      # RPO=0 Configuration
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+      KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE: 'false'
+      KAFKA_LOG_FLUSH_INTERVAL_MESSAGES: 1
+      KAFKA_LOG_FLUSH_INTERVAL_MS: 100
+      
+      # Performance and reliability settings
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_JMX_PORT: 9997
+      KAFKA_JMX_HOSTNAME: localhost
+      
+      # KRaft specific settings
+      KAFKA_METADATA_LOG_SEGMENT_MS: 15000
+      KAFKA_METADATA_MAX_RETENTION_MS: 86400000
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - fixlite-network
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Kafka UI for monitoring (KRaft mode)
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: fixlite-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    networks:
+      - fixlite-network
+
+  # Kafka topic initialization (KRaft mode)
+  kafka-init:
+    image: confluentinc/cp-kafka:8.0.0
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      echo 'Waiting for Kafka KRaft cluster to be ready...'
+      sleep 20
+      
+      # Create topics with RPO=0 configuration
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic fixlite.session.events --partitions 3 --replication-factor 1 --config min.insync.replicas=1
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic fixlite.message.journal --partitions 6 --replication-factor 1 --config min.insync.replicas=1
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic fixlite.session.state --partitions 3 --replication-factor 1 --config min.insync.replicas=1 --config cleanup.policy=compact
+      
+      echo 'Kafka topics created successfully with KRaft'
+      "
+    networks:
+      - fixlite-network
+
+volumes:
+  kafka-data:
+
+networks:
+  fixlite-network:
+    driver: bridge
